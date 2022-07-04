@@ -34,5 +34,11 @@ contract Dutch is ERC721 {
             address owner = requestIdToSender[requestId]
             _safeMint(owner, newTokenId);
             tokenCounter =tokenCounter + 1;
+        
         }
+
+        function setTokenURI(uint256 tokenId, string _tokenURI) public {
+            //
+            require(_isApprovedOrOwner(_msgsender(), tokenId, "ERC721: caller is not sender");
+                    _setTokenURI(tokenId, _tokenURI);
 
