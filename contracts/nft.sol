@@ -1,44 +1,55 @@
 //SPDX-License-Identifier:MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.6.0;
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
-import '@chainlink/contracts/src/v0.6/VRFConsumerBase.sol';
+//import '@chainlink/contracts/src/v0.6/VRFConsumerBase.sol';
+import "@chainlink/contracts/src/v0.6/VRFConsumerBase.sol";
 
-contract Dutch is ERC721 {
-    uint256 tokenCounter;
-    uint256 public keyhash;
+contract AdvancedCollectable is ERC721, VRFConsumerBase {
+    uint256 public tokenCounter;
+    
+    bytes32 public keyhash;
     uint256 public fee;
-    enum Breed{'PUG', 'SHIBA_INU', 'ST_BERNARD'}
+
+    enum Breed{PUG, SHIBA_INU, ST_BERNARD}
+    
     mapping(uint256 => Breed ) public tokenIdToBreed;
     mapping (bytes32 => address) public requestIdToSender;
+    
+    event requestedCollectable(bytes32 indexed requestId, address requester);
+    event breedAssigned(uint256 indexed tokenId, Breed breed);
 
     constructor(address _vrfCoordinator, address _linkToken, bytes32 _keyhash, uint256 _fee) public
         VRFConsumerBase(_vrfCoordinator, _linkToken)
-        ERC721 ('Dutchman Token', DUTCH)
+        ERC721 ('Dutchman Token', 'DUTCH')
         {
-        tokenCounter =0
+        tokenCounter =0;
         keyhash = _keyhash;
-        fee = _fee
+        fee = _fee;
         }
     
-        function Dutch(string memory tokenURI)public returns (bytes32){
+        function CreateCollectable() public returns (bytes32){
             bytes32 requestId = requestRandomness(keyhash, fee);
             requestIdToSender[requestId] = msg.sender;
-
+            emit requestedCollectable(requestId, msg.sender);
         }
 
-        function fufillRandomness(bytes32 requestId, uint256 randomNumber) internal override{
+        
+        function fulfillRandomness(bytes32 requestId, uint256 randomNumber) internal override {
             Breed breed = Breed(randomNumber % 3);
             uint256 newTokenID = tokenCounter;
-
             tokenIdToBreed[newTokenID]= breed;
-            address owner = requestIdToSender[requestId]
-            _safeMint(owner, newTokenId);
+            emit breedAssigned(newTokenID, breed);
+            
+            address owner = requestIdToSender[requestId];
+            _safeMint(owner, newTokenID);
             tokenCounter =tokenCounter + 1;
         
         }
 
-        function setTokenURI(uint256 tokenId, string _tokenURI) public {
-            //
-            require(_isApprovedOrOwner(_msgsender(), tokenId, "ERC721: caller is not sender");
-                    _setTokenURI(tokenId, _tokenURI);
+        function setTokenURI(uint256 tokenId, string memory _tokenURI) public {
+            //from openzepperlin to test for owner or approved 
+            require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not owner");
+            _setTokenURI(tokenId, _tokenURI);
 
+        }
+}
