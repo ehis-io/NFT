@@ -18,6 +18,10 @@ LOCAL_BLOCKCHAIN_ENVIRONMENTS = ["development", "ganache-local"]
 DECIMALS = 8
 STARTING_PRICE = 200000000000
 
+BREED = {0 : 'PUG', 1 : 'SHIBA_INU', 2 : 'ST_BERNARD'}
+
+def get_breed(breed):
+    return BREED[breed]
 
 def get_account(Index = None, Id= None):
     #accounts(0)
